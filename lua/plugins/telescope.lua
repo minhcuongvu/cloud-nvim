@@ -14,8 +14,10 @@ return {
       local telescope = require("telescope")
       telescope.setup({
         defaults = {
+          wrap_results = true,
           mappings = {
             i = { ["<C-u>"] = false, ["<C-d>"] = false },
+            n = { ["q"] = require("telescope.actions").close },
           },
         },
       })
