@@ -11,6 +11,7 @@ return {
         { "<leader>gh", group = "hunk" },
         { "<leader>gt", group = "toggle" },
         { "<leader>l", group = "lsp" },
+        { "<leader>o", group = "opencode" },
         { "<leader>t", group = "todo" },
       },
     },
