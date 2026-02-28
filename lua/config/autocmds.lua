@@ -40,6 +40,22 @@ vim.api.nvim_create_autocmd("VimResized", {
   end,
 })
 
+-- Open neo-tree when nvim is started with a directory argument (e.g. `nvim .`)
+vim.api.nvim_create_autocmd("VimEnter", {
+  desc = "Open Neotree for directory args",
+  once = true,
+  callback = function()
+    if vim.fn.argc() == 1 then
+      local arg = tostring(vim.fn.argv(0))
+      local stat = vim.uv.fs_stat(arg)
+      if stat and stat.type == "directory" then
+        vim.cmd("bwipeout")
+        vim.cmd("Neotree focus filesystem left dir=" .. vim.fn.fnameescape(arg))
+      end
+    end
+  end,
+})
+
 -- Reload file if it was changed outside of nvim
 vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter", "CursorHold", "CursorHoldI" }, {
   desc = "Check if file changed outside nvim",

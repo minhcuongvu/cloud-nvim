@@ -1,6 +1,7 @@
 return {
   {
     "echasnovski/mini.nvim",
+    event = "VeryLazy",
     config = function()
       -- Better text objects: vai/vii (indent), va"/ vi" (quotes), etc.
       require("mini.ai").setup({ n_lines = 500 })
