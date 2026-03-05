@@ -1,5 +1,12 @@
 vim.opt.termguicolors = true
 vim.opt.clipboard = "unnamedplus"
+
+-- Fix shell flags for bash on Windows (default shellcmdflag "/s /c" is for cmd.exe)
+if vim.fn.has("win32") == 1 and vim.o.shell:find("bash") then
+  vim.opt.shellcmdflag = "-c"
+  vim.opt.shellquote = ""
+  vim.opt.shellxquote = ""
+end
 vim.opt.updatetime = 250
 vim.opt.timeoutlen = 300
 vim.opt.signcolumn = "yes"

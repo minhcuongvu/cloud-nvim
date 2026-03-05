@@ -38,7 +38,13 @@ return {
 					map("<leader>lr", vim.lsp.buf.rename, "Rename symbol")
 					map("<leader>la", vim.lsp.buf.code_action, "Code action", { "n", "x" })
 					map("gD", vim.lsp.buf.declaration, "Go to declaration")
-					map("K", vim.lsp.buf.hover, "Hover documentation")
+					map("K", function()
+						vim.lsp.buf.hover({
+							border = "rounded",
+							max_width = math.floor(vim.o.columns * 0.6),
+							max_height = math.floor(vim.o.lines * 0.6),
+						})
+					end, "Hover documentation")
 
 					-- Highlight references of the word under the cursor
 					local client = vim.lsp.get_client_by_id(event.data.client_id)
@@ -92,7 +98,7 @@ return {
 
 			require("mason").setup()
 			local ensure_installed = vim.tbl_keys(servers)
-			vim.list_extend(ensure_installed, { "stylua" })
+			vim.list_extend(ensure_installed, { "stylua", "netcoredbg", "codelldb", "delve" })
 			require("mason-tool-installer").setup({ ensure_installed = ensure_installed })
 
 			require("mason-lspconfig").setup({

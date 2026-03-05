@@ -50,14 +50,14 @@ return {
 		{
 			"<leader>ou",
 			function()
-				require("opencode").command("session.half.page.up")
+				require("opencode").command("session.page.up")
 			end,
 			desc = "Scroll opencode up",
 		},
 		{
 			"<leader>od",
 			function()
-				require("opencode").command("session.half.page.down")
+				require("opencode").command("session.page.down")
 			end,
 			desc = "Scroll opencode down",
 		},

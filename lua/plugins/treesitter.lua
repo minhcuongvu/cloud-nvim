@@ -3,7 +3,8 @@
 return {
   {
     "nvim-treesitter/nvim-treesitter",
-    lazy = false,   -- plugin explicitly does not support lazy-loading
+    branch = "master",
+    lazy = false, -- plugin explicitly does not support lazy-loading
     build = ":TSUpdate",
     config = function()
       -- Enable treesitter highlighting for every filetype (no-ops if no parser installed)
