@@ -85,7 +85,7 @@ return {
 				capabilities = vim.tbl_deep_extend("force", capabilities, cmp_lsp.default_capabilities())
 			end
 
-			-- Servers to install and configure automatically
+			-- Servers to install and configure automatically via mason
 			local servers = {
 				lua_ls = {
 					settings = {
@@ -98,18 +98,85 @@ return {
 
 			require("mason").setup()
 			local ensure_installed = vim.tbl_keys(servers)
-			vim.list_extend(ensure_installed, { "stylua", "netcoredbg", "codelldb", "delve" })
+			vim.list_extend(ensure_installed, { "stylua", "netcoredbg", "codelldb", "delve", "omnisharp" })
 			require("mason-tool-installer").setup({ ensure_installed = ensure_installed })
 
 			require("mason-lspconfig").setup({
 				handlers = {
 					function(server_name)
+						if server_name == "omnisharp" then return end
 						local server = servers[server_name] or {}
 						server.capabilities = vim.tbl_deep_extend("force", {}, capabilities, server.capabilities or {})
 						require("lspconfig")[server_name].setup(server)
 					end,
 				},
 			})
+
+			-- Disable lspconfig's omnisharp — we manage it manually
+			vim.lsp.enable("omnisharp", false)
+
+			-- OmniSharp: start manually per .cs file with the correct solution
+		-- Name avoids "omnisharp" so vim.lsp.enable("omnisharp", false) won't interfere
+			local dll = vim.fn.stdpath("data") .. "/mason/packages/omnisharp/libexec/OmniSharp.dll"
+			local omnisharp_common = {
+				on_init = function(client)
+					client.offset_encoding = "utf-16"
+				end,
+				capabilities = capabilities,
+				settings = {
+					omnisharp = {
+						enableRoslynAnalyzers = true,
+						organizeImportsOnFormat = true,
+					},
+				},
+			}
+
+			local vs_msbuild = "C:/Program Files/Microsoft Visual Studio/18/Community/MSBuild/Current/Bin/MSBuild.exe"
+
+			local function start_csharp_lsp(bufnr)
+				if not vim.api.nvim_buf_is_valid(bufnr) then return end
+				local fname = vim.api.nvim_buf_get_name(bufnr):lower()
+				if not fname:match("%.cs$") then return end
+				local sln, root, cmd_env
+				if fname:find("mycommunitydirectory") then
+					sln = "C:/Dev/CISS/MyCommunityDirectory/All.sln"
+					root = "C:/Dev/CISS/MyCommunityDirectory"
+					-- Old-style .csproj needs VS MSBuild for WebApplication.targets
+					cmd_env = {
+						MSBUILD_EXE_PATH = vs_msbuild,
+						VSToolsPath = "C:/Program Files/Microsoft Visual Studio/18/Community/MSBuild/Microsoft/VisualStudio/v18.0",
+					}
+				else
+					sln = "C:/Dev/CISS/CieCore/All.sln"
+					root = "C:/Dev/CISS/CieCore"
+				end
+				vim.notify("csharp-lsp: starting for " .. fname .. " sln=" .. sln, vim.log.levels.INFO)
+				local id = vim.lsp.start(vim.tbl_deep_extend("force", omnisharp_common, {
+					name = "csharp",
+					cmd = { "dotnet", dll, "--languageserver", "-s", sln },
+					cmd_env = cmd_env,
+					root_dir = root,
+				}), { bufnr = bufnr })
+				vim.notify("csharp-lsp: client_id=" .. tostring(id), vim.log.levels.INFO)
+			end
+
+			-- Start OmniSharp for .cs files
+			vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter" }, {
+				group = vim.api.nvim_create_augroup("omnisharp-start", { clear = true }),
+				pattern = "*.cs",
+				callback = function(ev)
+					start_csharp_lsp(ev.buf)
+				end,
+			})
+
+			-- Handle the first buffer (BufEnter may have fired before this config ran)
+			vim.schedule(function()
+				for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+					if vim.api.nvim_buf_is_loaded(buf) then
+						start_csharp_lsp(buf)
+					end
+				end
+			end)
 		end,
 	},
 }

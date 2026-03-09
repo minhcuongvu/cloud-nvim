@@ -40,3 +40,6 @@ vim.opt.listchars = { tab = "» ", trail = "·", nbsp = "␣" }
 -- Splits open naturally
 vim.opt.splitright = true
 vim.opt.splitbelow = true
+
+-- Detect CRLF/LF line endings properly (prevents ^M in files on Windows)
+vim.opt.fileformats = "dos,unix"

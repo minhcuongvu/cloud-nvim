@@ -1,6 +1,9 @@
 vim.g.mapleader = " "
 vim.g.maplocalleader = "\\"
 
+-- Ensure dotnet and ucrt64 tools (rg, etc.) are on PATH
+vim.env.PATH = "C:\\msys64\\ucrt64\\bin;C:\\Program Files\\dotnet;" .. vim.env.PATH
+
 -- Bootstrap lazy.nvim
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not (vim.uv or vim.loop).fs_stat(lazypath) then
