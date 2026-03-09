@@ -82,6 +82,22 @@ return {
         },
         {
           type = "coreclr",
+          name = "MCD Proxy (Development)",
+          request = "launch",
+          cwd = normpath("C:/Dev/CISS/MyCommunityDirectory/MyCommunityDirectory.Proxy"),
+          program = normpath("C:/Dev/CISS/MyCommunityDirectory/MyCommunityDirectory.Proxy/bin/Debug/net8.0/MyCommunityDirectory.Proxy.dll"),
+          args = {
+            "--environment", "Development",
+            "--urls", "https://www.mcd.com:5443;http://localhost:5000",
+          },
+          env = {
+            ASPNETCORE_ENVIRONMENT = "Development",
+          },
+          stopAtEntry = false,
+          justMyCode = false,
+        },
+        {
+          type = "coreclr",
           name = "Attach",
           request = "attach",
           processId = function() return require("dap.utils").pick_process() end,
