@@ -150,14 +150,12 @@ return {
 					sln = "C:/Dev/CISS/CieCore/All.sln"
 					root = "C:/Dev/CISS/CieCore"
 				end
-				vim.notify("csharp-lsp: starting for " .. fname .. " sln=" .. sln, vim.log.levels.INFO)
-				local id = vim.lsp.start(vim.tbl_deep_extend("force", omnisharp_common, {
+				vim.lsp.start(vim.tbl_deep_extend("force", omnisharp_common, {
 					name = "csharp",
 					cmd = { "dotnet", dll, "--languageserver", "-s", sln },
 					cmd_env = cmd_env,
 					root_dir = root,
 				}), { bufnr = bufnr })
-				vim.notify("csharp-lsp: client_id=" .. tostring(id), vim.log.levels.INFO)
 			end
 
 			-- Start OmniSharp for .cs files
