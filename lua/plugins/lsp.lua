@@ -28,8 +28,8 @@ return {
 						vim.keymap.set(mode or "n", keys, func, { buffer = event.buf, desc = "LSP: " .. desc })
 					end
 
-					local builtin = require("telescope.builtin")
-					map("gd", builtin.lsp_definitions, "Go to definition")
+				local builtin = require("telescope.builtin")
+				map("gd", builtin.lsp_definitions, "Go to definition")
 					map("gr", builtin.lsp_references, "Find references")
 					map("gI", builtin.lsp_implementations, "Go to implementation")
 					map("<leader>lt", builtin.lsp_type_definitions, "Type definition")
