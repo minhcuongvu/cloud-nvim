@@ -85,20 +85,66 @@ return {
 				capabilities = vim.tbl_deep_extend("force", capabilities, cmp_lsp.default_capabilities())
 			end
 
-			-- Servers to install and configure automatically via mason
-			local servers = {
-				lua_ls = {
-					settings = {
-						Lua = {
-							completion = { callSnippet = "Replace" },
+		-- Servers to install and configure automatically via mason
+		local servers = {
+			lua_ls = {
+				settings = {
+					Lua = {
+						completion = { callSnippet = "Replace" },
+					},
+				},
+			},
+			-- C/C++ language server
+			clangd = {
+				cmd = {
+					"clangd",
+					"--background-index",
+					"--clang-tidy",
+					"--header-insertion=iwyu",
+					"--completion-style=detailed",
+					"--function-arg-placeholders",
+					"--fallback-style=llvm",
+				},
+				init_options = {
+					usePlaceholders = true,
+					completeUnimported = true,
+					clangdFileStatus = true,
+				},
+			},
+			-- Rust language server
+			rust_analyzer = {
+				settings = {
+					["rust-analyzer"] = {
+						cargo = {
+							allFeatures = true,
+							loadOutDirsFromCheck = true,
+							buildScripts = { enable = true },
+						},
+						checkOnSave = { command = "clippy" },
+						procMacro = { enable = true },
+						inlayHints = {
+							bindingModeHints = { enable = true },
+							chainingHints = { enable = true },
+							closingBraceHints = { enable = true },
+							closureReturnTypeHints = { enable = "always" },
+							lifetimeElisionHints = { enable = "always" },
+							parameterHints = { enable = true },
+							typeHints = { enable = true },
 						},
 					},
 				},
-			}
+			},
+		}
 
-			require("mason").setup()
-			local ensure_installed = vim.tbl_keys(servers)
-			vim.list_extend(ensure_installed, { "stylua", "netcoredbg", "codelldb", "delve", "omnisharp" })
+		require("mason").setup()
+		local ensure_installed = vim.tbl_keys(servers)
+		vim.list_extend(ensure_installed, {
+			"stylua",       -- Lua formatter
+			"netcoredbg",   -- C# debugger
+			"codelldb",     -- C/C++/Rust debugger
+			"delve",        -- Go debugger
+			"omnisharp",    -- C# language server
+		})
 			require("mason-tool-installer").setup({ ensure_installed = ensure_installed })
 
 			require("mason-lspconfig").setup({

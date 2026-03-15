@@ -16,12 +16,13 @@ return {
     opts = {
       notify_on_error = false,
       format_on_save = function(bufnr)
-        -- Disable auto-format for filetypes that rely on clangd for formatting
-        local disable_filetypes = { c = true, cpp = true }
-        return {
-          timeout_ms = 500,
-          lsp_format = disable_filetypes[vim.bo[bufnr].filetype] and "never" or "fallback",
-        }
+        -- These filetypes use LSP formatting (clangd, rust-analyzer)
+        local lsp_format_filetypes = { c = true, cpp = true, rust = true }
+        local filetype = vim.bo[bufnr].filetype
+        if lsp_format_filetypes[filetype] then
+          return { timeout_ms = 1000, lsp_format = "prefer" }
+        end
+        return { timeout_ms = 500, lsp_format = "fallback" }
       end,
       formatters_by_ft = {
         lua        = { "stylua" },
