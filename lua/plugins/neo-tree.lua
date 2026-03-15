@@ -9,7 +9,14 @@ return {
       "MunifTanjim/nui.nvim",
     },
     keys = {
-      { "<leader>e", "<cmd>Neotree filesystem reveal left toggle<CR>", desc = "Toggle file tree" },
+      { "<leader>e", function()
+  require("neo-tree.command").execute({
+    source = "filesystem",
+    position = "left",
+    reveal = true,
+    toggle = true
+  })
+end, desc = "Toggle file tree (reveal)" },
     },
     config = function(_, opts)
       require("neo-tree").setup(opts)
@@ -84,7 +91,7 @@ return {
           hide_by_name = { "bin", "obj", "packages", "node_modules", ".vs" },
           hide_by_pattern = { "*.user" },
         },
-        scan_mode = "shallow",
+        scan_mode = "deep",  -- Deep scan for reliable subdir reveal on open/gd
       },
       default_component_configs = {
         git_status = {
