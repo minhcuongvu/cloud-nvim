@@ -50,8 +50,8 @@ end, desc = "Toggle file tree (reveal)" },
         local fs_scan = require("neo-tree.sources.filesystem.lib.fs_scan")
         local state = manager.get_state("filesystem")
 
-        -- Only reveal if file is under the current tree root
-        if not state.path then
+        -- Skip if tree isn't ready yet (e.g. just toggled open)
+        if not state.path or not state.tree then
           return
         end
 
@@ -64,6 +64,9 @@ end, desc = "Toggle file tree (reveal)" },
         -- Scan to expand parent dirs, then highlight without stealing focus
         local current_win = vim.api.nvim_get_current_win()
         fs_scan.get_items(state, nil, filepath, function()
+          if not state.tree then
+            return
+          end
           renderer.focus_node(state, filepath, true)
           -- Ensure focus stays on the file window
           if vim.api.nvim_win_is_valid(current_win) then
@@ -81,6 +84,8 @@ end, desc = "Toggle file tree (reveal)" },
       })
     end,
     opts = {
+      sources = { "filesystem", "buffers" },  -- exclude git_status source (fails with Unicode usernames on MSYS2)
+      enable_git_status = true,
       git_status_async = true,
       filesystem = {
         follow_current_file = { enabled = false },
@@ -91,7 +96,7 @@ end, desc = "Toggle file tree (reveal)" },
           hide_by_name = { "bin", "obj", "packages", "node_modules", ".vs" },
           hide_by_pattern = { "*.user" },
         },
-        scan_mode = "deep",  -- Deep scan for reliable subdir reveal on open/gd
+        scan_mode = "shallow",
       },
       default_component_configs = {
         git_status = {

@@ -50,7 +50,7 @@ vim.api.nvim_create_autocmd("VimEnter", {
 			local stat = vim.uv.fs_stat(arg)
 			if stat and stat.type == "directory" then
 				vim.cmd("bwipeout")
-				vim.cmd("Neotree focus filesystem left dir=" .. vim.fn.fnameescape(arg))
+				vim.cmd("Neotree show filesystem left dir=" .. vim.fn.fnameescape(arg))
 			end
 		end
 	end,
