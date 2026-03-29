@@ -20,6 +20,17 @@ return {
 			{ "j-hui/fidget.nvim", opts = {} },
 		},
 		config = function()
+			-- Fix Windows path casing in LSP workspace folders (gopls rejects mismatched case)
+			if vim.fn.has("win32") == 1 then
+				local orig_start = vim.lsp.start
+				vim.lsp.start = function(config, opts)
+					if config.root_dir then
+						config.root_dir = vim.uv.fs_realpath(config.root_dir) or config.root_dir
+					end
+					return orig_start(config, opts)
+				end
+			end
+
 			-- Keymaps and features that activate when an LSP attaches to a buffer
 			vim.api.nvim_create_autocmd("LspAttach", {
 				group = vim.api.nvim_create_augroup("lsp-attach", { clear = true }),
@@ -87,6 +98,7 @@ return {
 
 		-- Servers to install and configure automatically via mason
 		local servers = {
+			gopls = {},
 			lua_ls = {
 				settings = {
 					Lua = {

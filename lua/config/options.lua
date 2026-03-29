@@ -7,6 +7,7 @@ if vim.fn.has("win32") == 1 and vim.o.shell:find("bash") then
   vim.opt.shellquote = ""
   vim.opt.shellxquote = ""
 end
+
 vim.opt.updatetime = 250
 vim.opt.timeoutlen = 300
 vim.opt.signcolumn = "yes"
