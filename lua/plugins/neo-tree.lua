@@ -18,51 +18,6 @@ return {
   })
 end, desc = "Toggle file tree (reveal)" },
     },
-    -- Patch neo-tree source files on install/update to fix Windows/MSYS2 issues.
-    -- This runs after every :Lazy install/update so changes persist across updates.
-    build = function(plugin)
-      local function patch_file(relative_path, pattern, replacement)
-        local filepath = plugin.dir .. "/" .. relative_path
-        local f = io.open(filepath, "r")
-        if not f then return end
-        local content = f:read("*a")
-        f:close()
-        local new_content, count = content:gsub(pattern, replacement)
-        if count > 0 and new_content ~= content then
-          local fw = io.open(filepath, "w")
-          if fw then
-            fw:write(new_content)
-            fw:close()
-          end
-        end
-      end
-
-      -- 1. Downgrade noisy "git status exited abnormally" warn -> trace
-      patch_file(
-        "lua/neo-tree/git/init.lua",
-        "log%.at%.warn%.format(%b())",
-        function(args)
-          if args:find("git status async process exited abnormally") then
-            return "log.at.trace.format(" .. args .. ")"
-          end
-          return "log.at.warn.format(" .. args .. ")"
-        end
-      )
-
-      -- 2. Replace assert on git ls-files failure with graceful return
-      patch_file(
-        "lua/neo-tree/git/ls-files.lua",
-        "assert%(vim%.v%.shell_error == 0%)",
-        "if vim.v.shell_error ~= 0 then\n    return {}\n  end"
-      )
-
-      -- 3. Guard against nil state.tree in open_with_cmd
-      patch_file(
-        "lua/neo-tree/sources/common/commands.lua",
-        "(local tree = state%.tree)\n(  local success, node = pcall%(tree%.get_node, tree%))",
-        "%1\n  if not tree then\n    return\n  end\n%2"
-      )
-    end,
     config = function(_, opts)
       require("neo-tree").setup(opts)
 
