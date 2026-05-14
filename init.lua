@@ -4,6 +4,12 @@ vim.g.maplocalleader = "\\"
 -- Ensure dotnet and ucrt64 tools (rg, etc.) are on PATH
 vim.env.PATH = "C:\\msys64\\ucrt64\\bin;C:\\Program Files\\dotnet;" .. vim.env.PATH
 
+-- Ensure nvm Node/npm is available to Neovim subprocesses (LSP, Mason, etc.)
+local nvm_node_path = vim.fn.expand("~/.nvm/versions/node/v24.15.0/bin")
+if vim.fn.isdirectory(nvm_node_path) == 1 then
+    vim.env.PATH = nvm_node_path .. ":" .. vim.env.PATH
+end
+
 -- Bootstrap lazy.nvim
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not (vim.uv or vim.loop).fs_stat(lazypath) then
