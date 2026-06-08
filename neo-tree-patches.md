@@ -12,8 +12,9 @@ install/update.
 **File:** `lua/neo-tree/git/init.lua`
 
 Git status commands frequently fail on Windows (Unicode paths, MSYS2
-compatibility). The default `log.at.warn` call spams the message log. The patch
-downgrades it to `log.at.trace` so it's only visible with verbose logging.
+compatibility). The default `log.at.warn.format` call spams the message log. The
+patch downgrades it to `log.at.trace.format` so it's only visible with verbose
+logging.
 
 ### 2. Graceful handling of `git ls-files` failures
 
@@ -40,6 +41,12 @@ The `build` callback in the plugin spec uses `io.open` / `string.gsub` to
 apply the patches directly to the plugin source files on disk. Lazy.nvim runs
 `build` after every `:Lazy install` and `:Lazy update`, so the patches are
 re-applied automatically whenever neo-tree is updated.
+
+To prevent lazy.nvim from seeing the patched files as "local changes" and
+aborting future updates, an `init` callback registers autocmds on
+`LazyUpdatePre`, `LazySyncPre`, and `LazyRestorePre`. These autocmds run
+`git checkout --` on the patched files **before** lazy performs its git
+operations, ensuring the working tree is always pristine during checkout.
 
 On a fresh clone, run `:Lazy install` (or just open Neovim, which triggers it
 automatically) and the patches will be applied during the install step.

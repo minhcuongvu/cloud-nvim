@@ -3,9 +3,28 @@ return {
     "nvim-neo-tree/neo-tree.nvim",
     branch = "v3.x",
     cmd = "Neotree",
+    init = function()
+      -- Before lazy.nvim updates neo-tree, reset patched files to pristine so
+      -- lazy's git.status check never sees them as local changes.
+      local plugin_path = (vim.fn.stdpath("data") .. "/lazy/neo-tree.nvim"):gsub("\\", "/")
+      local function reset_patches()
+        if vim.fn.isdirectory(plugin_path) == 1 then
+          vim.fn.system({
+            "git", "-C", plugin_path, "checkout", "--",
+            "lua/neo-tree/git/init.lua",
+            "lua/neo-tree/git/ls-files.lua",
+            "lua/neo-tree/sources/common/commands.lua",
+          })
+        end
+      end
+      vim.api.nvim_create_autocmd("User", {
+        pattern = { "LazyUpdatePre", "LazySyncPre", "LazyRestorePre" },
+        callback = reset_patches,
+      })
+    end,
     build = function()
       -- Apply Windows/MSYS2 patches to neo-tree after install/update
-      local plugin_path = vim.fn.stdpath("data") .. "/lazy/neo-tree.nvim"
+      local plugin_path = (vim.fn.stdpath("data") .. "/lazy/neo-tree.nvim"):gsub("\\", "/")
 
       -- Patch 1: Suppress "git status exited abnormally" warnings (downgrade to trace)
       local git_init_path = plugin_path .. "/lua/neo-tree/git/init.lua"
@@ -13,7 +32,7 @@ return {
       if f1 then
         local content = f1:read("*all")
         f1:close()
-        content = content:gsub('log%.at%.warn%("git status exited abnormally', 'log.at.trace("git status exited abnormally')
+        content = content:gsub("log%.at%.warn%.format%(", "log.at.trace.format(")
         f1 = io.open(git_init_path, "w")
         if f1 then
           f1:write(content)
@@ -27,7 +46,7 @@ return {
       if f2 then
         local content = f2:read("*all")
         f2:close()
-        content = content:gsub('assert%(vim%.v%.shell_error == 0%)', 'if vim.v.shell_error ~= 0 then\n    return {}\n  end')
+        content = content:gsub("assert%(vim%.v%.shell_error == 0%)", "if vim.v.shell_error ~= 0 then\n    return {}\n  end")
         f2 = io.open(ls_files_path, "w")
         if f2 then
           f2:write(content)
@@ -35,9 +54,22 @@ return {
         end
       end
 
-      -- Tell git to ignore changes to patched files so lazy.nvim doesn't complain
-      vim.fn.system({ "git", "-C", plugin_path, "update-index", "--skip-worktree", "lua/neo-tree/git/init.lua" })
-      vim.fn.system({ "git", "-C", plugin_path, "update-index", "--skip-worktree", "lua/neo-tree/git/ls-files.lua" })
+      -- Patch 3: Nil guard for state.tree in open_with_cmd
+      local commands_path = plugin_path .. "/lua/neo-tree/sources/common/commands.lua"
+      local f3 = io.open(commands_path, "r")
+      if f3 then
+        local content = f3:read("*all")
+        f3:close()
+        content = content:gsub(
+          "(local open_with_cmd = function%(state, open_cmd, toggle_directory, open_file%)%s*local tree = state%.tree)%s*\n%s*local success, node = pcall",
+          "%1\n  if not tree then\n    return\n  end\n  local success, node = pcall"
+        )
+        f3 = io.open(commands_path, "w")
+        if f3 then
+          f3:write(content)
+          f3:close()
+        end
+      end
     end,
     dependencies = {
       "nvim-lua/plenary.nvim",
